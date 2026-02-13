@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+//import { GoogleGenerativeAI } from '@google/generative-ai';
 import { FaPaperPlane, FaArrowLeft, FaRobot, FaTrash, FaCopy, FaExclamationTriangle, FaLightbulb, FaMicrophone } from 'react-icons/fa';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
+
+import axios from "axios";
+import { serverUrl } from "../App"; // adjust path if needed
+
+//const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+//const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 function Aichatbot() {
   const [messages, setMessages] = useState([
@@ -113,60 +117,97 @@ function Aichatbot() {
     initializeAPI();
   }, []);
 
-  const handleSend = async (text = input) => {
-    if (!text.trim() || loading || !availableModel) return;
+//   const handleSend = async (text = input) => {
+//     if (!text.trim() || loading || !availableModel) return;
 
-    const userMessage = { role: 'user', content: text };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setLoading(true);
-    setShowSuggestions(false);
+//     const userMessage = { role: 'user', content: text };
+//     setMessages(prev => [...prev, userMessage]);
+//     setInput('');
+//     setLoading(true);
+//     setShowSuggestions(false);
 
-    try {
-      const model = genAI.getGenerativeModel({ model: availableModel });
+//     try {
+//       const model = genAI.getGenerativeModel({ model: availableModel });
 
-      const prompt = `You are an expert educational AI tutor. Be helpful, clear, and encouraging.
+//       const prompt = `You are an expert educational AI tutor. Be helpful, clear, and encouraging.
 
-Student's question: "${text}"
+// Student's question: "${text}"
 
-Instructions:
-- Provide accurate, educational answers
-- Use bullet points for lists
-- Include examples when helpful
-- For code, use markdown code blocks with language specification
-- Keep responses concise but thorough (aim for 200-400 words)
-- Be encouraging and supportive
+// Instructions:
+// - Provide accurate, educational answers
+// - Use bullet points for lists
+// - Include examples when helpful
+// - For code, use markdown code blocks with language specification
+// - Keep responses concise but thorough (aim for 200-400 words)
+// - Be encouraging and supportive
 
-Answer:`;
+// Answer:`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+//       const result = await model.generateContent(prompt);
+//       const response = await result.response;
+//       const responseText = response.text();
 
-      setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+//       setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
 
-    } catch (error) {
-      let errorMessage = '⚠️ **Error**\n\n';
+//     } catch (error) {
+//       let errorMessage = '⚠️ **Error**\n\n';
       
-      if (error.message?.includes('quota') || error.message?.includes('429')) {
-        const retryMatch = error.message.match(/retry in ([\d.]+)s/);
-        const retryTime = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : 30;
+//       if (error.message?.includes('quota') || error.message?.includes('429')) {
+//         const retryMatch = error.message.match(/retry in ([\d.]+)s/);
+//         const retryTime = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : 30;
         
-        errorMessage += `Request limit reached. Please wait ${retryTime} seconds and try again.\n\n💡 Tip: Responses are being rate-limited to ensure fair usage.`;
-      } else if (error.message?.includes('blocked')) {
-        errorMessage += 'Request blocked by safety filters. Please rephrase your question.';
-      } else {
-        errorMessage += 'Something went wrong. Please try again.';
-      }
+//         errorMessage += `Request limit reached. Please wait ${retryTime} seconds and try again.\n\n💡 Tip: Responses are being rate-limited to ensure fair usage.`;
+//       } else if (error.message?.includes('blocked')) {
+//         errorMessage += 'Request blocked by safety filters. Please rephrase your question.';
+//       } else {
+//         errorMessage += 'Something went wrong. Please try again.';
+//       }
       
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: errorMessage 
-      }]);
-    } finally {
-      setLoading(false);
-    }
-  };
+//       setMessages(prev => [...prev, { 
+//         role: 'assistant', 
+//         content: errorMessage 
+//       }]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+const handleSend = async (text = input) => {
+  if (!text.trim() || loading) return;
+
+  const userMessage = { role: 'user', content: text };
+  setMessages(prev => [...prev, userMessage]);
+  setInput('');
+  setLoading(true);
+  setShowSuggestions(false);
+
+  try {
+
+    const res = await axios.post(
+      `${serverUrl}/api/ai/chat`,
+      { message: text },
+      { withCredentials: true }
+    );
+
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: res.data.reply }
+    ]);
+
+  } catch (error) {
+
+    setMessages(prev => [
+      ...prev,
+      {
+        role: 'assistant',
+        content: '⚠️ Server error. Please try again.'
+      }
+    ]);
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

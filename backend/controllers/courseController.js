@@ -111,29 +111,90 @@ export const removeCourse = async (req, res) => {
 
 //create lecture
 
-export const createLecture = async (req,res) => {
-    try {
-        const {lectureTitle}= req.body
-        const {courseId} = req.params
+// export const createLecture = async (req,res) => {
+//     try {
+//         const {lectureTitle}= req.body
+//         const {courseId} = req.params
 
-        if(!lectureTitle || !courseId){
-             return res.status(400).json({message:"Lecture Title required"})
-        }
-        const lecture = await Lecture.create({lectureTitle})
-        const course = await Course.findById(courseId)
-        if(course){
-            course.lectures.push(lecture._id)
+//         if(!lectureTitle || !courseId){
+//              return res.status(400).json({message:"Lecture Title required"})
+//         }
+//         const lecture = await Lecture.create({lectureTitle})
+//         const course = await Course.findById(courseId)
+//         if(course){
+//             course.lectures.push(lecture._id)
             
-        }
-        await course.populate("lectures")
-        await course.save()
-        return res.status(201).json({lecture,course})
+//         }
+//         await course.populate("lectures")
+//         await course.save()
+//         return res.status(201).json({lecture,course})
         
-    } catch (error) {
-        return res.status(500).json({message:`Failed to Create Lecture ${error}`})
-    }
+//     } catch (error) {
+//         return res.status(500).json({message:`Failed to Create Lecture ${error}`})
+//     }
     
-}
+// }
+
+export const createLecture = async (req, res) => {
+
+  try {
+
+    const { lectureTitle } = req.body;
+    const { courseId } = req.params;
+
+    //------------------------------------------------
+
+    if (!lectureTitle) {
+      return res.status(400).json({
+        message: "Lecture title is required"
+      });
+    }
+
+    //------------------------------------------------
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        message: "Course not found"
+      });
+    }
+
+    //------------------------------------------------
+    // ⭐ CREATE WITH COURSE REFERENCE
+    //------------------------------------------------
+
+    const lecture = await Lecture.create({
+
+      lectureTitle,
+      course: courseId   // ⭐⭐⭐ THIS FIXES YOUR ERROR
+
+    });
+
+    //------------------------------------------------
+    // Add lecture inside course
+    //------------------------------------------------
+
+    course.lectures.push(lecture._id);
+    await course.save();
+
+    //------------------------------------------------
+
+    res.status(201).json({
+      success: true,
+      lecture
+    });
+
+  } catch (error) {
+
+    console.log("Create Lecture Error:", error);
+
+    res.status(500).json({
+      message: "Failed to create lecture"
+    });
+  }
+};
+
 
 export const getCourseLecture = async (req,res) => {
     try {

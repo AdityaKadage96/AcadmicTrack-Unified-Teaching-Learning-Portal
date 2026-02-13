@@ -1,20 +1,98 @@
+// import mongoose from "mongoose";
+
+// const lectureSchema = new mongoose.Schema({
+//     lectureTitle:{
+//         type:String,
+//         required:true
+//     },
+//     videoUrl:{
+//         type:String
+//     },
+//     isPreviewFree:{
+//         type:Boolean
+//     },
+    
+// },{timestamps:true})
+
+
+// const Lecture = mongoose.model("Lecture" , lectureSchema)
+
+// export default Lecture
+
+
+//-----------------------version 2----------------------
+
+// import mongoose from "mongoose";
+
+// const lectureSchema = new mongoose.Schema(
+// {
+//     lectureTitle:{
+//         type:String,
+//         required:true,
+//         trim:true
+//     },
+
+//     videoUrl:{
+//         type:String,
+//         default:""
+//     },
+
+//     isPreviewFree:{
+//         type:Boolean,
+//         default:false
+//     },
+
+//     // ⭐ CRITICAL FIELD (DO NOT REMOVE)
+//     course:{
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref:"Course",
+//         required:true,
+//         index:true
+//     }
+
+// },
+// {timestamps:true}
+// );
+
+// const Lecture = mongoose.model("Lecture", lectureSchema);
+
+// export default Lecture;
+
+
+//--------------------------------version 3--------------------------
+
 import mongoose from "mongoose";
 
-const lectureSchema = new mongoose.Schema({
+const lectureSchema = new mongoose.Schema(
+{
     lectureTitle:{
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
+
     videoUrl:{
-        type:String
+        type:String,
+        default:""
     },
+
     isPreviewFree:{
-        type:Boolean
+        type:Boolean,
+        default:false
     },
-    
-},{timestamps:true})
 
+    // ⭐ THIS IS THE MOST IMPORTANT FIX
+    course:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Course",
+        required:true
+    }
 
-const Lecture = mongoose.model("Lecture" , lectureSchema)
+},
+{timestamps:true}
+);
 
-export default Lecture
+// ⭐ Prevent OverwriteModelError
+const Lecture = mongoose.models.Lecture || mongoose.model("Lecture", lectureSchema);
+
+export default Lecture;

@@ -26,33 +26,49 @@ import EnrolledCourse from './pages/EnrolledCourse'
 import ViewLecture from './pages/ViewLecture'
 import SearchWithAi from './pages/SearchWithAi'
 import getAllReviews from './customHooks/getAllReviews'
-import Aichatbot from './pages/admin/Aichatbot'
+import Aichatbot from './pages/Aichatbot'
+import GlobalDataLoader from "./components/GlobalDataLoader";
+
+import QuizPage from "./pages/QuizPage";
 
 export const serverUrl = "http://localhost:8000"
+
 
 function App() {
   
   let {userData} = useSelector(state=>state.user)
 
-  getCurrentUser()
-  getCouseData()
-  getCreatorCourseData()
-  getAllReviews()
+  // getCurrentUser()
+  // getCouseData()
+  // getCreatorCourseData()
+  // getAllReviews()
   return (
     <>
-    
+      <GlobalDataLoader />
       <ToastContainer />
       <ScrollToTop/>
       <Routes>
         <Route path='/' element={<Home/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/signup' element={!userData?<SignUp/>:<Navigate to={"/"}/>}/>
+
+         <Route
+    path="/ai-chat"
+    element={userData ? <Aichatbot /> : <Navigate to="/login"/>}
+  />
         <Route path='/profile' element={userData?<Profile/>:<Navigate to={"/signup"}/>}/>
         <Route path='/allcourses' element={userData?<AllCouses/>:<Navigate to={"/signup"}/>}/>
         <Route path='/viewcourse/:courseId' element={userData?<ViewCourse/>:<Navigate to={"/signup"}/>}/>
         <Route path='/editprofile' element={userData?<EditProfile/>:<Navigate to={"/signup"}/>}/>
         <Route path='/enrolledcourses' element={userData?<EnrolledCourse/>:<Navigate to={"/signup"}/>}/>
          <Route path='/viewlecture/:courseId' element={userData?<ViewLecture/>:<Navigate to={"/signup"}/>}/>
+
+         {/* ✅ AI Quiz Route
+  <Route path="/quiz/:lectureId" element={userData ? <QuizPage /> : <Navigate to="/login" />}/> */}
+
+        <Route path="/quiz/:lectureId" element={userData ? <QuizPage /> : <Navigate to="/login"/>} />
+
+
          <Route path='/searchwithai' element={userData?<SearchWithAi/>:<Navigate to={"/signup"}/>}/>
         
         
